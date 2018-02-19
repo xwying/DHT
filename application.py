@@ -33,7 +33,7 @@ for node in node_list:
 	ip, port = node.split(':')
 	clients.append(Client((ip, int(port))))
 
-[client.request(b'timer:start') for client in clients]
+# [client.request(b'timer:start') for client in clients]
 
 for i in range(num_operations):
 	request_node = random.randint(0, num_node-1)
@@ -76,7 +76,7 @@ for i in range(num_operations):
 	
 # time.sleep(15)
 
-[client.request(b'timer:stop') for client in clients]
+# [client.request(b'timer:stop') for client in clients]
 [client.close() for client in clients]
 print('{} out of {} puts sucesses.'.format(num_success_put, num_puts))
 print('{} out of {} gets sucesses.'.format(num_success_get, num_gets))

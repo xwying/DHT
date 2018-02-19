@@ -43,8 +43,9 @@ class Server(object):
 
 		self.operation_count=0
 		self.start_time = None
+		self.start_flag = 0
 		self.end_time = None
-		self.end_time_flag = 0
+		self.end_flag = 0
 
 
 	def __del__(self):
@@ -56,6 +57,7 @@ class Server(object):
 		print('Waiting for connection...')
 		while True:
 			try:
+				print('number of connection = ', len(self.message_queues.keys()))
 				conn, addr = self.socket.accept()
 			except socket.timeout:
 				print('socket time out')
@@ -72,10 +74,13 @@ class Server(object):
 				# self.thread_list[-1].start()
 
 	def tcplink(self, conn, addr):
-		print('Accept new connection from %s:%s...' % addr)
+		if self.start_flag == 0:
+			self.start_flag = 1
+			self.start_time = timeit.default_timer()
 
 		while True:
 			try:
+				print('number of connection = ', len(self.message_queues.keys()))
 				data = conn.recv(1024).decode('utf-8')
 				# time.sleep(0.1)
 				if not data:
@@ -99,6 +104,7 @@ class Server(object):
 				else:
 					# self.mutex.acquire()
 					# print('sending message in queue')
+					print(pending_msg)
 					if pending_msg is None:
 						continue
 					conn.send(pending_msg)
@@ -108,13 +114,17 @@ class Server(object):
 					if pending_msg == b'CLOSE CONNECTION':
 						del self.message_queues[conn]
 						conn.close()
+						print('Close connection from %s:%s...' % addr)
+						# print('number of connection = ', len(self.message_queues.keys()))
+						if len(self.message_queues.keys()) <= 2:
+							self.end_time = timeit.default_timer()
+							print('Average Throughput = ', self.operation_count/ (self.end_time - self.start_time))
 						return
 
 		# print('thread end')
 		# 
 		# # time.sleep(3)
 		# del self.message_queues[conn]
-		print('Close connection from %s:%s...' % addr)
 		# # # time.sleep(3)
 		# conn.close()
 		# # # [self.node_links[addr].close() for addr in self.node_links.keys()]
@@ -189,6 +199,7 @@ class Server(object):
 		self.message_queues[conn].put(b'This operation is not supported.')
 
 	def __quit(self, data, sock):
+		# print('we are in __quit')
 		self.message_queues[sock].put(b'CLOSE CONNECTION')
 
 	def __timer(self, data, sock):
@@ -199,8 +210,8 @@ class Server(object):
 			self.message_queues[sock].put(b'Start Timmer')
 		elif op == 'stop':
 			self.end_time_flag += 1
-			# print(self.end_time_flag)
-			if self.end_time_flag == 2:
+			print('end_time_flag=',self.end_time_flag)
+			if self.end_flag == 3:
 				self.end_time = timeit.default_timer()
 				self.message_queues[sock].put(b'Stop Timmer')
 				self.end_time_flag = 0
