@@ -112,7 +112,7 @@ class Server(object):
 					# self.mutex.release()
 					# self.mutex.release()
 					if pending_msg == b'CLOSE CONNECTION':
-						time.sleep(5)
+						# time.sleep(5)
 						del self.message_queues[conn]
 						conn.close()
 						print('Close connection from %s:%s...' % addr)
