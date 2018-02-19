@@ -199,7 +199,8 @@ class Server(object):
 		self.message_queues[conn].put(b'This operation is not supported.')
 
 	def __quit(self, data, sock):
-		# print('we are in __quit')
+		print('we are in __quit')
+		time.sleep(5)
 		self.message_queues[sock].put(b'CLOSE CONNECTION')
 
 	def __timer(self, data, sock):
