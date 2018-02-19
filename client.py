@@ -7,6 +7,8 @@ class Client(object):
 		self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		# self.client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		self.client_socket.connect(addr)
+		self.client_socket.settimeout(0.2)
+		# self.client_socket.setblocking(0)
 
 	def __exit__(self, exc_type, exc_val, exc_tb):
 		self.close()
@@ -37,10 +39,12 @@ class Client(object):
 		try:
 			self.answer = self.client_socket.recv(1024)
 		except socket.error:
-			print('client: READ MESSAGE FAIL '+ str(self.PORT))
+			print('client: READ MESSAGE FAIL')
+			# self.answer = self.request(message)
 			# logging.error('client: READ MESSAGE FAIL '+ str(self.PORT))
-			sys.exit()
-		# except socket.timeout:
-			
+			pass
+		except socket.timeout:
+			# self.answer = self.request(message)
+			pass
 		else:
 			return self.answer

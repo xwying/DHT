@@ -7,13 +7,15 @@ from hashlib import md5
 from struct import unpack_from
 import sys
 from client import Client
+import timeit
 
 class Server(object):
 	def __init__(self, port):
 		# Defining available operations with dictionary for easily adding features
 		self.operations = {'get': self.__get,
 						   'put': self.__put,
-						   'close': self._quit}
+						   'close': self.__quit,
+						   'timer': self.__timer}
 		self.server_port = port
 		self.server_ip = socket.gethostbyname(socket.gethostname())
 		self.server_address = ':'.join([self.server_ip, str(self.server_port)])
@@ -34,11 +36,16 @@ class Server(object):
 			self.node_list = [x.strip() for x in content]
 
 		self.num_nodes = len(self.node_list)
-		self.table_size = 256
+		self.table_size = 1024
 		self.hash_table = Hash_Table(self.table_size)
 		self.node_links = {}
 
-		# self.sucess_count = 0
+
+		self.operation_count=0
+		self.start_time = None
+		self.end_time = None
+		self.end_time_flag = 0
+
 
 	def __del__(self):
 		"""Destructor"""
@@ -49,38 +56,28 @@ class Server(object):
 		print('Waiting for connection...')
 		while True:
 			try:
-				# print('Waiting for connection...')
 				conn, addr = self.socket.accept()
 			except socket.timeout:
-				print('socket time out -===============')
+				print('socket time out')
 				pass
 			else:
 				self.message_queues[conn] = Queue.Queue()
 				now_thread = threading.Thread(target=self.tcplink, args=(conn, addr))
 				self.thread_list.append(now_thread)
+				
+				# print(len(self.thread_list))
 				now_thread.start()
+				
 				# self.thread_list[-1].daemon=True
 				# self.thread_list[-1].start()
-			# print(self.shutdown)
-			# if self.shutdown:
-			# 	# logging.debug('CLOSE')
-			# 	time.sleep(2)
-			# 	return
-
-	# def __exit__(self, exc_type, exc_val, exc_tb):
-	# 	[self.node_links[node].close() for node in self.node_links]
-	# 	return False
 
 	def tcplink(self, conn, addr):
 		print('Accept new connection from %s:%s...' % addr)
 
 		while True:
 			try:
-				print('asdf', conn)
 				data = conn.recv(1024).decode('utf-8')
-				# print('original data:   ',data)
 				# time.sleep(0.1)
-				print('cccc', conn)
 				if not data:
 					break
 				else:
@@ -98,15 +95,17 @@ class Server(object):
 					pending_msg = self.message_queues[conn].get_nowait()
 					# self.mutex.release()
 				except Queue.Empty:	
-					pass
+					continue
 				else:
 					# self.mutex.acquire()
 					# print('sending message in queue')
+					if pending_msg is None:
+						continue
 					conn.send(pending_msg)
 					# print('message in queue sended')
 					# self.mutex.release()
 					# self.mutex.release()
-					if pending_msg == 'CLOSE CONNECTION':
+					if pending_msg == b'CLOSE CONNECTION':
 						del self.message_queues[conn]
 						conn.close()
 						return
@@ -153,14 +152,12 @@ class Server(object):
 			response = '{}:{}:{}'.format('get', key, str(value)).encode('utf-8')
 		# If the key is in another node, send request to the target node.
 		else:
-			# self.mutex.acquire()
 			response = self.send_request(data + ';', self.node_list[target_node])
-			# self.mutex.release()
-			print(response)
+			# print(response)
 		print()
-		# self.mutex.acquire()
+		self.operation_count += 1
 		self.message_queues[conn].put(response)
-		# self.mutex.release()
+
 	def __put(self, data, conn):
 		# data_format = put:key:value
 		_, key, value = data.split(':')
@@ -171,10 +168,10 @@ class Server(object):
 		# If the key shoud be stored in this node
 		if self.server_address == self.node_list[target_node]: 
 			self.mutex.acquire()
-			# print('mutex locked')
+
 			sucesses = self.hash_table.put(key, value)
 			self.mutex.release()
-			# print('mutex released')
+
 			if sucesses:
 				print('put operation success.')
 			else:
@@ -183,24 +180,32 @@ class Server(object):
 			response = '{}:{}:{}:{}'.format('put', key, value, sucesses).encode('utf-8')
 		# If the key is in another node, send request to the target node.
 		else:
-			# self.mutex.acquire()
 			response = self.send_request(data + ';', self.node_list[target_node])
-			# self.mutex.release()
 		print()
-		# self.mutex.acquire()
+		self.operation_count += 1
 		self.message_queues[conn].put(response)
-		# self.mutex.release()
-	def __badrequest(self, data, conn):
-		# self.mutex.acquire()
-		self.message_queues[conn].put(b'This operation is not supported.')
-		# self.mutex.release()
-	# def __shutdown(self, *args):
-	# 	[conn.close() for ]
-	# 	self.shutdown = True
-	# 	sys.exit(0)
 
-	def _quit(self, data, sock):
+	def __badrequest(self, data, conn):
+		self.message_queues[conn].put(b'This operation is not supported.')
+
+	def __quit(self, data, sock):
 		self.message_queues[sock].put(b'CLOSE CONNECTION')
+
+	def __timer(self, data, sock):
+		# data format = timer:start / timer:stop
+		_, op = data.split(":")
+		if op == 'start' and self.start_time == None:
+			self.start_time = timeit.default_timer()
+			self.message_queues[sock].put(b'Start Timmer')
+		elif op == 'stop':
+			self.end_time_flag += 1
+			# print(self.end_time_flag)
+			if self.end_time_flag == 2:
+				self.end_time = timeit.default_timer()
+				self.message_queues[sock].put(b'Stop Timmer')
+				self.end_time_flag = 0
+				print('Average Throughput = ', self.operation_count/ (self.end_time - self.start_time) )
+
 
 	def __findNode(self, key_str):
 	# Find the node that stores the key
