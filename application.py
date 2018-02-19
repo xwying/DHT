@@ -1,7 +1,6 @@
 import socket
 from client import Client
 import random
-from tqdm import tqdm
 import timeit
 import time
 
@@ -49,6 +48,7 @@ for i in range(num_operations):
 	print(response)
 	print('request {} takes {}'.format(i, time_spend))
 	
+	# print(response)
 	if response.split(':')[-1] is not failed:
 		num_success += 1
 

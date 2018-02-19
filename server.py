@@ -1,7 +1,6 @@
 import socket
 import threading
 from hash_table import Hash_Table
-import dht_utils
 import queue as Queue
 import time
 from hashlib import md5
