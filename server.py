@@ -20,7 +20,7 @@ class Server(object):
 		self.server_ip = socket.gethostbyname(socket.gethostname())
 		self.server_address = ':'.join([self.server_ip, str(self.server_port)])
 		self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		# self.socket.settimeout(1)
+		self.socket.settimeout(2)
 		# self.port = port
 		self.thread_list = []
 		self.mutex = threading.Lock()
@@ -58,7 +58,7 @@ class Server(object):
 		print('Waiting for connection...')
 		while True:
 			try:
-				print('number of connection = ', len(self.message_queues.keys()))
+				# print('number of connection = ', len(self.message_queues.keys()))
 				conn, addr = self.socket.accept()
 			except socket.timeout:
 				print('socket time out')
