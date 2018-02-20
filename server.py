@@ -20,7 +20,7 @@ class Server(object):
 		self.server_ip = socket.gethostbyname(socket.gethostname())
 		self.server_address = ':'.join([self.server_ip, str(self.server_port)])
 		self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		self.socket.settimeout(1)
+		# self.socket.settimeout(1)
 		# self.port = port
 		self.thread_list = []
 		self.mutex = threading.Lock()
@@ -75,6 +75,8 @@ class Server(object):
 				# self.thread_list[-1].start()
 
 	def tcplink(self, conn, addr):
+		print('new connection from {}'.format(addr))
+		conn.settimeout(1)
 		if self.start_flag == 0:
 			self.start_flag = 1
 			self.start_time = timeit.default_timer()
