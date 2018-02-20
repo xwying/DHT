@@ -95,7 +95,7 @@ class Server(object):
 						operate(msg, conn)
 			except socket.error:
 				print('Data Receive Failed')
-				break
+				continue
 
 			else:
 				try:
