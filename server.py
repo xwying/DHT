@@ -87,7 +87,7 @@ class Server(object):
 				data = conn.recv(1024).decode('utf-8')
 				# time.sleep(0.1)
 				if not data:
-					continue
+					pass
 				else:
 					for msg in data.strip(';').split(';'):
 						print(msg)
