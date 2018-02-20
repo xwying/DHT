@@ -76,7 +76,7 @@ class Server(object):
 
 	def tcplink(self, conn, addr):
 		print('new connection from {}'.format(addr))
-		conn.settimeout(2)
+		conn.settimeout(3)
 		if self.start_flag == 0:
 			self.start_flag = 1
 			self.start_time = timeit.default_timer()
