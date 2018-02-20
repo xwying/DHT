@@ -62,7 +62,7 @@ class Server(object):
 				conn, addr = self.socket.accept()
 			except socket.timeout:
 				# print('socket time out')
-				pass
+				continue
 			else:
 				self.message_queues[conn] = Queue.Queue()
 				now_thread = threading.Thread(target=self.tcplink, args=(conn, addr))
@@ -83,7 +83,7 @@ class Server(object):
 
 		while True:
 			try:
-				print('number of connection = ', len(self.message_queues.keys()))
+				# print('number of connection = ', len(self.message_queues.keys()))
 				data = conn.recv(1024).decode('utf-8')
 				# time.sleep(0.1)
 				if not data:
