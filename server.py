@@ -76,7 +76,7 @@ class Server(object):
 
 	def tcplink(self, conn, addr):
 		print('new connection from {}'.format(addr))
-		conn.settimeout(3)
+		conn.settimeout(2)
 		if self.start_flag == 0:
 			self.start_flag = 1
 			self.start_time = timeit.default_timer()
@@ -87,7 +87,7 @@ class Server(object):
 				data = conn.recv(1024).decode('utf-8')
 				# time.sleep(0.1)
 				if not data:
-					break
+					continue
 				else:
 					for msg in data.strip(';').split(';'):
 						print(msg)
