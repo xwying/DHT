@@ -20,6 +20,7 @@ class Server(object):
 		self.server_ip = socket.gethostbyname(socket.gethostname())
 		self.server_address = ':'.join([self.server_ip, str(self.server_port)])
 		self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		self.socket.settimeout(1)
 		# self.port = port
 		self.thread_list = []
 		self.mutex = threading.Lock()
