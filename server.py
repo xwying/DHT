@@ -61,7 +61,7 @@ class Server(object):
 				# print('number of connection = ', len(self.message_queues.keys()))
 				conn, addr = self.socket.accept()
 			except socket.timeout:
-				print('socket time out')
+				# print('socket time out')
 				pass
 			else:
 				self.message_queues[conn] = Queue.Queue()
