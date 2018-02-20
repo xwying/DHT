@@ -97,8 +97,11 @@ class Server(object):
 						operate = self.operations.get(msg.split(':')[0], self.__badrequest)
 						operate(msg, conn)
 			except socket.error:
-				print('Data Receive Failed')
-				continue
+				if self.end_flag == 1:
+					break
+				else:
+					print('Data Receive Failed')
+					continue
 
 			else:
 				try:
