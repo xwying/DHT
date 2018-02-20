@@ -87,7 +87,10 @@ class Server(object):
 				data = conn.recv(1024).decode('utf-8')
 				# time.sleep(0.1)
 				if not data:
-					pass
+					if self.end_flag == 1:
+						break
+					else:
+						pass
 				else:
 					for msg in data.strip(';').split(';'):
 						print(msg)
@@ -122,8 +125,9 @@ class Server(object):
 						# print('number of connection = ', len(self.message_queues.keys()))
 						if len(self.message_queues.keys()) <= 2:
 							self.end_time = timeit.default_timer()
+							self.end_flag = 1
 							print('Average Throughput = ', self.operation_count/ (self.end_time - self.start_time))
-						return
+						break
 
 		# print('thread end')
 		# 
